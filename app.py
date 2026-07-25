@@ -1,7 +1,7 @@
 import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from cedula_service import buscar_por_cedula, buscar_por_nombre
+import requests
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -9,54 +9,45 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 @app.route('/api/cedula/<cedula>', methods=['GET'])
 def consultar_cedula(cedula):
     try:
-        resultados = buscar_por_cedula(cedula)
-        
-        if not resultados:
-            return jsonify({
-                "status": "exito",
-                "resultados": {
-                    "nombre": "DATOS EN CONSTRUCCIÓN",
-                    "cedula": cedula
-                }
-            })
-            
-        primer_resultado = resultados[0] if isinstance(resultados, list) else resultados
-        nombre = primer_resultado.get("nombre", "DATOS EN CONSTRUCCIÓN")
+        url_externa = f"https://app3902.privynote.net/api/v1/civil/citizen/{cedula}"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "es-ES,es;q=0.9",
+            "Referer": "https://consultasecuador.com/",
+            "Origin": "https://consultasecuador.com",
+            "Content-Type": "application/json"
+        }
+        respuesta = requests.get(url_externa, headers=headers)
+        if respuesta.status_code != 200:
+            return jsonify({"status": "error", "mensaje": "Bloqueado"}), respuesta.status_code
 
-        return jsonify({
-            "status": "exito",
-            "resultados": {
-                "nombre": nombre,
-                "cedula": cedula
-            }
-        })
-        
+        datos = respuesta.json()
+        nombre = datos.get("nombre") or datos.get("nombreFinal") or datos.get("nombres") or "DATOS EN CONSTRUCCIÓN"
+        return jsonify({"status": "exito", "resultados": {"nombre": nombre, "cedula": cedula}})
     except Exception as e:
-        return jsonify({
-            "status": "exito",
-            "resultados": {
-                "nombre": "DATOS EN CONSTRUCCIÓN",
-                "cedula": cedula
-            }
-        })
+        return jsonify({"status": "exito", "resultados": {"nombre": "DATOS EN CONSTRUCCIÓN", "cedula": cedula}})
 
 @app.route('/api/placa/<placa>', methods=['GET'])
 def consultar_placa(placa):
     try:
-        # Reutilizamos la misma lógica segura apuntando al servicio interno
-        resultados = buscar_por_cedula(placa.upper()) # O la función de vehículos que tengas en cedula_service
+        url_externa = "https://app3902.privynote.net/api/v1/transit/vehicle-owner"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "es-ES,es;q=0.9",
+            "Referer": "https://consultasecuador.com/",
+            "Origin": "https://consultasecuador.com",
+            "Content-Type": "application/json"
+        }
+        payload = {"placa": placa.upper().strip()}
+        respuesta = requests.post(url_externa, json=payload, headers=headers)
         
-        if not resultados:
-            return jsonify({
-                "status": "exito",
-                "resultados": {
-                    "nombre": "DATOS EN CONSTRUCCIÓN",
-                    "value": placa
-                }
-            })
-            
-        primer_resultado = resultados[0] if isinstance(resultados, list) else resultados
-        propietario = primer_resultado.get("nombre", "DATOS EN CONSTRUCCIÓN")
+        if respuesta.status_code != 200:
+            return jsonify({"status": "error", "mensaje": "Error de servicio"}), respuesta.status_code
+
+        datos = respuesta.json()
+        propietario = datos.get("nombre") or datos.get("propietario") or datos.get("titular") or datos.get("nombres") or "DATOS EN CONSTRUCCIÓN"
 
         return jsonify({
             "status": "exito",
@@ -65,7 +56,6 @@ def consultar_placa(placa):
                 "value": placa
             }
         })
-        
     except Exception as e:
         return jsonify({
             "status": "exito",

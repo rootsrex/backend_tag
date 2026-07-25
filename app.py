@@ -31,7 +31,6 @@ def consultar_cedula(cedula):
 @app.route('/api/placa/<placa>', methods=['GET'])
 def consultar_placa(placa):
     try:
-        # Aquí puedes cambiar la URL en el futuro por otra fuente libre que no tenga Cloudflare
         url_externa = "https://app3902.privynote.net/api/v1/transit/vehicle-owner"
         headers = {
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",

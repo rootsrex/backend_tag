@@ -10,25 +10,22 @@ def consultar_placa(placa):
             "Origin": "https://consultasecuador.com",
             "Content-Type": "application/json"
         }
-        
-        # Enviar la placa en el cuerpo (JSON) como exige el servicio externo
         payload = {"placa": placa.upper().strip()}
         respuesta = requests.post(url_externa, json=payload, headers=headers)
 
-        if respuesta.status_code != 200:
-            return jsonify({
-                "status": "error", 
-                "mensaje": f"La página externa bloqueó la petición (Código {respuesta.status_code})"
-            }), respuesta.status_code
-
         datos = respuesta.json()
+        print("RESPUESTA REAL DE LA API DE PLACAS:", datos) # Esto saldrá en tu terminal de VS Code
+
+        # Buscamos en todas las posibles estructuras que pueda tener
         propietario = (
             datos.get("nombre") or 
             datos.get("propietario") or 
             datos.get("titular") or 
             datos.get("nombres") or 
             datos.get("nombrePropietario") or 
-            "DATOS EN CONSTRUCCIÓN"
+            datos.get("data", {}).get("nombre") or
+            datos.get("resultado", {}).get("nombre") or
+            str(datos) # Si no encuentra nada, nos mostrará el JSON crudo en la web para verlo
         )
         
         return jsonify({

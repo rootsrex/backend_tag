@@ -24,7 +24,7 @@ def consultar_cedula(cedula):
             return jsonify({
                 "status": "exito", 
                 "resultados": {
-                    "nombre": "SERVICIO EXTERNO EN MANTENIMIENTO", 
+                    "nombre": "SISTEMA SATURADO (INTENTE EN UN MOMENTO)", 
                     "cedula": cedula
                 }
             })
@@ -37,7 +37,7 @@ def consultar_cedula(cedula):
         return jsonify({
             "status": "exito", 
             "resultados": {
-                "nombre": "CONSULTA DISPONIBLE PRONTO", 
+                "nombre": "MÓDULO ESTABLECIENDO CONEXIÓN", 
                 "cedula": cedula
             }
         })
@@ -54,4 +54,4 @@ def consultar_placa(placa):
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port) 
+    app.run(host='0.0.0.0', port=port)

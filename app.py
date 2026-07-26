@@ -24,20 +24,27 @@ def consultar_cedula(cedula):
             return jsonify({
                 "status": "exito", 
                 "resultados": {
-                    "nombre": "SISTEMA SATURADO (INTENTE EN UN MOMENTO)", 
+                    "nombre": "CIUDADANO NO ENCONTRADO", 
                     "cedula": cedula
                 }
             })
 
         datos = respuesta.json()
-        nombre = datos.get("nombre") or datos.get("nombreFinal") or datos.get("nombres") or "DATOS EN CONSTRUCCIÓN"
-        return jsonify({"status": "exito", "resultados": {"nombre": nombre, "cedula": cedula}})
+        nombre = datos.get("nombre") or datos.get("nombreFinal") or datos.get("nombres") or datos.get("data", {}).get("nombre") or "REGISTRO NO DISPONIBLE"
+        
+        return jsonify({
+            "status": "exito", 
+            "resultados": {
+                "nombre": nombre, 
+                "cedula": cedula
+            }
+        })
         
     except Exception as e:
         return jsonify({
             "status": "exito", 
             "resultados": {
-                "nombre": "MÓDULO ESTABLECIENDO CONEXIÓN", 
+                "nombre": "ERROR DE CONEXIÓN", 
                 "cedula": cedula
             }
         })

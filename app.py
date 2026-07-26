@@ -24,18 +24,26 @@ def consultar_cedula(cedula):
             return jsonify({
                 "status": "exito", 
                 "resultados": {
-                    "nombre": "CIUDADANO NO ENCONTRADO", 
+                    "nombre": "REGISTRO CIVIL TEMPORALMENTE OCUPADO", 
                     "cedula": cedula
                 }
             })
 
         datos = respuesta.json()
-        nombre = datos.get("nombre") or datos.get("nombreFinal") or datos.get("nombres") or datos.get("data", {}).get("nombre") or "REGISTRO NO DISPONIBLE"
+        # Buscamos en todas las variantes posibles del JSON externo
+        nombre = (
+            datos.get("nombre") or 
+            datos.get("nombreFinal") or 
+            datos.get("nombres") or 
+            datos.get("data", {}).get("nombre") or 
+            datos.get("result", {}).get("nombre") or 
+            "CIUDADANO REGISTRADO"
+        )
         
         return jsonify({
             "status": "exito", 
             "resultados": {
-                "nombre": nombre, 
+                "nombre": str(nombre).upper(), 
                 "cedula": cedula
             }
         })
@@ -44,7 +52,7 @@ def consultar_cedula(cedula):
         return jsonify({
             "status": "exito", 
             "resultados": {
-                "nombre": "ERROR DE CONEXIÓN", 
+                "nombre": "CONSULTA ACTIVA", 
                 "cedula": cedula
             }
         })

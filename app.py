@@ -1,39 +1,33 @@
-@app.route('/api/placa/<placa>', methods=['GET'])
-def consultar_placa(placa):
+@app.route('/api/camara/<codigo>', methods=['GET'])
+def consultar_camara(codigo):
     try:
-        url_externa = f"https://app3902.privynote.net/api/v1/vehicular/plate/{placa.upper()}"
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "Accept": "application/json, text/plain, */*",
-            "Referer": "https://consultasecuador.com/",
-            "Origin": "https://consultasecuador.com"
-        }
-        respuesta = requests.get(url_externa, headers=headers, timeout=10)
+        df = pd.read_excel('camaras.xlsx')
+        busqueda = df[df['codigo'].astype(str).str.upper() == codigo.upper()]
         
-        if respuesta.status_code != 200:
+        if busqueda.empty:
             return jsonify({
                 "status": "exito",
                 "resultados": [{
-                    "nombre": "VEHÍCULO NO ENCONTRADO",
-                    "value": placa.upper()
+                    "nombre": "CÁMARA NO ENCONTRADA",
+                    "direccion": "Verifique el código en el sistema"
                 }]
             })
-
-        datos = respuesta.json()
-        propietario = datos.get("propietario") or datos.get("nombre") or datos.get("nombres") or datos.get("data", {}).get("propietario") or "REGISTRO VEHICULAR DISPONIBLE"
+            
+        nombre_camara = str(busqueda.iloc[0].get('nombre', f"CÁMARA {codigo.upper()}"))
+        direccion = str(busqueda.iloc[0].get('direccion', 'DIRECCIÓN NO REGISTRADA'))
         
         return jsonify({
             "status": "exito",
             "resultados": [{
-                "nombre": str(propietario).upper(),
-                "value": placa.upper()
+                "nombre": nombre_camara.upper(),
+                "direccion": direccion.upper()
             }]
         })
     except Exception as e:
         return jsonify({
             "status": "exito",
             "resultados": [{
-                "nombre": "CONSULTA DE PLACA ACTIVA",
-                "value": placa.upper()
+                "nombre": "ERROR AL LEER EL EXCEL",
+                "direccion": str(e)
             }]
         })

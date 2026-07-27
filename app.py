@@ -1,11 +1,15 @@
+from flask import Flask, request, jsonify
+import pandas as pd
+
+# Asegúrate de que app esté definida así
+app = Flask(__name__)
+
 @app.route('/api/camara/<path:codigo>', methods=['GET'])
 def consultar_camara(codigo):
     try:
         df = pd.read_excel('camaras.xlsx')
-        
         busqueda_str = str(codigo).strip().lower()
         
-        # Filtra filas que contengan el texto buscado en cualquiera de las columnas
         df_filtrado = df[
             df.astype(str).apply(lambda row: row.str.lower().str.contains(busqueda_str, na=False).any(), axis=1)
         ]

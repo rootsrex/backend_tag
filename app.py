@@ -1,20 +1,27 @@
-@app.route('/api/camara/<codigo>', methods=['GET'])
+@app.route('/api/camara/<path:codigo>', methods=['GET'])
 def consultar_camara(codigo):
     try:
         df = pd.read_excel('camaras.xlsx')
-        busqueda = df[df['codigo'].astype(str).str.upper() == codigo.upper()]
         
-        if busqueda.empty:
+        busqueda_str = str(codigo).strip().lower()
+        
+        # Filtra filas que contengan el texto buscado en cualquiera de las columnas
+        df_filtrado = df[
+            df.astype(str).apply(lambda row: row.str.lower().str.contains(busqueda_str, na=False).any(), axis=1)
+        ]
+        
+        if df_filtrado.empty:
             return jsonify({
                 "status": "exito",
                 "resultados": [{
-                    "nombre": "CÁMARA NO ENCONTRADA",
-                    "direccion": "Verifique el código en el sistema"
+                    "nombre": "CÁMARA / DIRECCIÓN NO ENCONTRADA",
+                    "direccion": "Verifique los datos e intente nuevamente"
                 }]
             })
             
-        nombre_camara = str(busqueda.iloc[0].get('nombre', f"CÁMARA {codigo.upper()}"))
-        direccion = str(busqueda.iloc[0].get('direccion', 'DIRECCIÓN NO REGISTRADA'))
+        fila = df_filtrado.iloc[0]
+        nombre_camara = str(fila.get('nombre', fila.get('codigo', 'CÁMARA')))
+        direccion = str(fila.get('direccion', 'DIRECCIÓN NO REGISTRADA'))
         
         return jsonify({
             "status": "exito",
@@ -27,7 +34,7 @@ def consultar_camara(codigo):
         return jsonify({
             "status": "exito",
             "resultados": [{
-                "nombre": "ERROR AL LEER EL EXCEL",
+                "nombre": "ERROR EN CONSULTA",
                 "direccion": str(e)
             }]
         })
